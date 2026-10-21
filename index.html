@@ -1,0 +1,382 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Memory before Goal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Outfit:wght@400;700&display=swap">
+<link rel="stylesheet" href="static/css/pipeline.css">
+<link rel="stylesheet" href="static/css/style.css">
+
+
+<div class="draft" id="draft-banner" hidden>Draft for co-authors. Values marked <span class="tbd">TBD</span> are still being evaluated; set <code>SITE.draft = false</code> in static/js/data.js before release.</div>
+
+<nav class="site-nav" aria-label="Sections">
+  <div class="container">
+    <a class="brand" href="#top">WholeBodyMem</a>
+    <ul>
+      <li><a href="#top">Authors</a></li>
+      <li><a href="#video">Video</a></li>
+      <li><a href="#method">Memory</a></li>
+      <li><a href="#benchmark">Benchmark</a></li>
+      <li><a href="#simulation">Simulation</a></li>
+      <li><a href="#real">Real World</a></li>
+      <li><a href="#results">Results</a></li>
+      <li><a href="#citation">Citation</a></li>
+    </ul>
+  </div>
+</nav>
+
+<header id="top">
+  <div class="container">
+    <h1><span class="tl" style="display:block;font-size:min(1.45em, 9vw);line-height:1.08;letter-spacing:-.01em;margin-bottom:.18em"><span class="mem" style="color:#7A6A9A">Memory</span> before Goal:</span><span class="tl" style="font-weight:400;color:#16181D">Role of Pre-History Memory for Humanoid Loco-Manipulation</span></h1>
+
+    <div class="authors-panel" id="authors">
+      <p class="authors">Anonymous Authors</p>
+      <p class="affiliations">Affiliations withheld for double-blind review</p>
+      <p class="author-notes">Paper under review</p>
+    </div>
+
+    <div class="hero-video">
+      <video id="teaser" src="static/video/real_trashbag.mp4" poster="static/img/real/trashbag_poster.jpg" autoplay muted loop playsinline controls preload="metadata" aria-label="WholeBodyMem on the real Unitree G1, trash-bag task"></video>
+    </div>
+    <p class="caption hero-caption">Can a humanoid act on something it saw seconds ago and can no longer see? A person rests a bag on one of three frames and takes it away; the Unitree G1 turns away, picks up a cup, turns back and must remember where the bag was. Autonomous WholeBodyMem rollout, real time, faces blurred.</p>
+
+    <div class="resource-links" aria-label="WholeBodyMem resources">
+      <a class="resource-pill resource-red" data-link="paper"><span class="resource-prefix">arXiv</span><span class="resource-value">Paper</span></a>
+      <a class="resource-pill resource-green" href="#top"><span class="resource-prefix">Project</span><span class="resource-value">Page</span></a>
+      <a class="resource-pill resource-slate" data-link="code"><span class="resource-prefix">Code</span><span class="resource-value">GitHub</span></a>
+      <a class="resource-pill resource-gold" data-link="benchmark"><span class="resource-prefix">Dataset</span><span class="resource-value">Hugging Face</span></a>
+      <a class="resource-pill resource-steel" href="#real"><span class="resource-prefix">Videos</span><span class="resource-value">Real G1</span></a>
+      <a class="resource-pill resource-indigo" href="#results"><span class="resource-prefix">Benchmark</span><span class="resource-value">Results</span></a>
+      <a class="resource-pill resource-blue" href="#citation"><span class="resource-prefix">Cite</span><span class="resource-value">BibTeX</span></a>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <!-- Supplementary video -->
+  <section id="video" class="soft">
+    <div class="container">
+      <h2>Supplementary Video</h2>
+      <div class="hero-video" style="max-width:980px">
+        <video src="static/video/supp_video_3min.mp4" poster="static/img/supp_poster.jpg" controls playsinline preload="metadata" aria-label="WholeBodyMem supplementary video: motivation, method, the memory-dependent benchmark, and results in simulation and on the real Unitree G1, with narration"></video>
+      </div>
+      <p class="caption">Supplementary video overview: why dynamic scenes need memory, how WholeBodyMem selects memory frames with object events, the memory-dependent benchmark, and results in simulation and on the real Unitree G1.</p>
+    </div>
+  </section>
+
+  <!-- Method -->
+  <section id="method">
+    <div class="container">
+      <h2>Object-Guided Memory</h2>
+
+      <div style="max-width:100%;margin:1.2rem auto .6rem;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:#fff">
+        <video src="static/video/architecture.mp4" poster="static/img/architecture_poster.jpg" autoplay muted loop playsinline controls preload="metadata" aria-label="WholeBodyMem architecture, highlighted stage by stage: SAM3 object tracking and event-first frame selection, memory and object tokens, the Qwen3-VL backbone, the flow-matching action DiT with memory cross-attention, whole-body control, and the memory update before replanning" style="display:block;width:100%;aspect-ratio:1696/556;background:#fff"></video>
+      </div>
+      <p class="caption"><strong>Figure 1.</strong> Architecture of WholeBodyMem.</p>
+
+      <div class="category" style="margin-top:2.2rem">
+        <h3>SAM3 Object Tracking on Real G1 Data</h3>
+        <p class="cat-intro">Zero-shot SAM3 tracking on recorded G1 head-camera episodes. Left: each object's mask, named by its object; right: each object's memory state (tracked, last seen, never seen). Videos play at 2×; click one to pause it.</p>
+        <div class="video-grid cols2">
+          <div class="video-item"><video data-auto src="static/video/det_trashbag.mp4" poster="static/img/posters/det_trashbag.jpg" muted loop playsinline preload="none"></video>
+            <div class="evtl" data-dur="23.97" data-ev="[[&quot;E1&quot;, 1.8, 2.6, &quot;roll rests on the middle square&quot;, []], [&quot;E2&quot;, 2.6, 2.7, &quot;roll is taken off the middle square&quot;, [[&quot;E1&quot;, &quot;same roll&quot;]]], [&quot;D&quot;, 18.3, 18.3, &quot;place the blue cup on the middle square&quot;, [[&quot;E1&quot;, &quot;where the roll rested&quot;], [&quot;E2&quot;, &quot;square now empty&quot;]]]]"></div>
+            <p><span class="tag tag-auto">Where</span><b>Trash bag.</b> Prompts “roll”, “blue cup”, “black tape square”. The roll is held over the middle square, then taken away.</p></div>
+          <div class="video-item"><video data-auto src="static/video/det_rememberchip.mp4" poster="static/img/posters/det_rememberchip.jpg" muted loop playsinline preload="none"></video>
+            <div class="evtl" data-dur="49.33" data-ev="[[&quot;E1&quot;, 3.9, 5.7, &quot;green can is lifted off the table&quot;, []], [&quot;E2&quot;, 5.7, 5.8, &quot;green can is put back on the table&quot;, [[&quot;E1&quot;, &quot;same can&quot;]]], [&quot;D&quot;, 21.0, 21.0, &quot;pick up the green can&quot;, [[&quot;E1&quot;, &quot;the can singled out&quot;], [&quot;E2&quot;, &quot;back among the others&quot;]]]]"></div>
+            <p><span class="tag tag-auto">What</span><b>Remember-chip.</b> Red, yellow and green chip cans and the cart, tracked while the robot picks the can that was singled out.</p></div>
+          <div class="video-item"><video data-auto src="static/video/det_cafe_first.mp4" poster="static/img/posters/det_cafe_first.jpg" muted loop playsinline preload="none"></video>
+            <div class="evtl" data-dur="31.2" data-ev="[[&quot;E1&quot;, 2.0, 3.1, &quot;cola stops on the middle seat&quot;, []], [&quot;E2&quot;, 4.1, 5.0, &quot;cola stops on the right seat&quot;, [[&quot;E1&quot;, &quot;after&quot;]]], [&quot;E3&quot;, 5.8, 6.5, &quot;cola stops on the left seat&quot;, [[&quot;E2&quot;, &quot;after&quot;]]], [&quot;D&quot;, 23.6, 23.6, &quot;serve the cola to the middle seat&quot;, [[&quot;E1&quot;, &quot;first stop&quot;], [&quot;E2&quot;, &quot;later&quot;], [&quot;E3&quot;, &quot;later&quot;]]]]"></div>
+            <p><span class="tag tag-auto">When</span><b>Café: first come, first served.</b> Prompts “pepsi can”, “black tape square”. The cola stops on all three seats in turn; the robot serves the seat it stopped on first.</p></div>
+          <div class="video-item"><video data-auto src="static/video/det_cafe_which.mp4" poster="static/img/posters/det_cafe_which.jpg" muted loop playsinline preload="none"></video>
+            <div class="evtl" data-dur="30.0" data-ev="[[&quot;E1&quot;, 1.4, 2.7, &quot;cola stops on the middle seat&quot;, []], [&quot;E2&quot;, 4.0, 5.2, &quot;sprite stops on the left seat&quot;, []], [&quot;D&quot;, 23.4, 23.4, &quot;serve the cola to the middle seat&quot;, [[&quot;E1&quot;, &quot;the cola’s seat&quot;], [&quot;E2&quot;, &quot;sprite, not the cola&quot;]]]]"></div>
+            <p><span class="tag tag-auto">What + where</span><b>Café: which seat has the cola.</b> Prompts “pepsi can”, “green can”, “black tape square”. The cola and the sprite stop on different seats; the robot serves the cola’s seat.</p></div>
+          <div class="video-item"><video data-auto src="static/video/det_cafe_stopfirst.mp4" poster="static/img/posters/det_cafe_stopfirst.jpg" muted loop playsinline preload="none"></video>
+            <div class="evtl" data-dur="34.33" data-ev="[[&quot;E1&quot;, 1.7, 2.7, &quot;cola stops on the left seat&quot;, []], [&quot;E2&quot;, 3.9, 4.6, &quot;cola stops on the middle seat&quot;, [[&quot;E1&quot;, &quot;same cola, later&quot;]]], [&quot;E3&quot;, 5.8, 6.7, &quot;sprite stops on the right seat&quot;, []], [&quot;D&quot;, 29.5, 29.5, &quot;serve the cola to the left seat&quot;, [[&quot;E1&quot;, &quot;first cola stop&quot;], [&quot;E2&quot;, &quot;later stop&quot;], [&quot;E3&quot;, &quot;not the cola&quot;]]]]"></div>
+            <p><span class="tag tag-auto">What + where + when</span><b>Café: where did the cola stop first.</b> Same prompts. The cola stops on two seats and the sprite on one; the robot serves the cola’s first stop.</p></div>
+          <div class="video-item"><video data-auto src="static/video/det_chipcart.mp4" poster="static/img/posters/det_chipcart.jpg" muted loop playsinline preload="none"></video>
+            <div class="evtl" data-dur="82.9" data-ev="[[&quot;E1&quot;, 14.5, 16.5, &quot;red can is put into the cart&quot;, []], [&quot;E2&quot;, 34.5, 36.5, &quot;yellow can is put into the cart&quot;, [[&quot;E1&quot;, &quot;next in order&quot;]]], [&quot;E3&quot;, 51.5, 53.5, &quot;green can is put into the cart&quot;, [[&quot;E2&quot;, &quot;next in order&quot;]]], [&quot;D&quot;, 62.0, 62.0, &quot;push the cart&quot;, [[&quot;E1&quot;, &quot;red in&quot;], [&quot;E2&quot;, &quot;yellow in&quot;], [&quot;E3&quot;, &quot;green in&quot;]]]]"></div>
+            <p><span class="tag tag-auto">Progress</span><b>Chip-cart.</b> Prompt “chips can”; each can stays in memory (last seen) while it is out of view.</p></div>
+        </div>
+      </div>
+
+
+      <div class="subfigure first">
+        <h3 class="sub-title">Object Events vs. Uniform Frames on the Real G1</h3>
+        <div class="story">
+          <figure class="cue"><img src="static/img/real_ep7/ep7_f0060.jpg" alt="Head camera: a hand rests the purple bag on the middle frame" loading="lazy"><figcaption>Bag on a frame <span>t = 2.0 s</span></figcaption></figure>
+          <figure><img src="static/img/real_ep7/ep7_f0200.jpg" alt="Head camera while the robot turns away from the table" loading="lazy"><figcaption>Turn away <span>t = 6.7 s</span></figcaption></figure>
+          <figure><img src="static/img/real_ep7/ep7_f0300.jpg" alt="Head camera: the cup on the other table" loading="lazy"><figcaption>Pick the cup <span>t = 10.0 s</span></figcaption></figure>
+          <figure><img src="static/img/real_ep7/ep7_f0549.jpg" alt="Head camera: three empty frames, the robot holding the cup" loading="lazy"><figcaption>Which frame? <span>t = 18.3 s</span></figcaption></figure>
+        </div>
+        <div class="memcompare">
+          <div class="mc-bar">
+            <p class="mc-title">Memory at the decision (7 frames): <span id="ep7-verdict" aria-live="polite"></span></p>
+            <div class="seg" role="group" aria-label="Memory to show">
+              <button type="button" id="ep7-wbm" aria-pressed="true">WholeBodyMem</button>
+              <button type="button" id="ep7-uni" aria-pressed="false">Uniform</button>
+            </div>
+          </div>
+          <div class="slots" id="ep7-slots"></div>
+        </div>
+        <p class="caption"><strong>Figure 2.</strong> A real trash-bag episode from the G1's head camera (teleoperated demonstration, 30 fps).<br>The bag is in view only around t = 2 s; at the decision (t = 18.3 s) all three frames are empty. With seven frames each, WholeBodyMem keeps the bag's last appearance (t = 2.5 s), while Uniform memory steps over it.</p>
+      </div>
+
+      <div class="subfigure">
+        <h3 class="sub-title">Interactive: Which Frames Does Each Memory Keep?</h3>
+        <div class="explorer" id="explorer">
+          <div class="xp-top">
+            <div class="xp-view">
+              <video id="xp-video" src="static/video/sim_blinkpad.mp4" poster="static/img/sim/blinkpad_poster.jpg" muted playsinline preload="auto" aria-label="BlinkPad expert demonstration, head camera"></video>
+              <div class="xp-hud"><span id="xp-time">t = 0.00 s</span><span id="xp-frame">frame 0</span><span class="blink" id="xp-blinktag" hidden>pad blinks</span></div>
+            </div>
+            <div class="xp-side">
+              <p>In this BlinkPad demonstration, one of three pads blinks yellow for 0.2&nbsp;s (10 frames at 50&nbsp;Hz). Three seconds later the robot must place the can on that pad.</p>
+              <div class="xp-controls">
+                <button type="button" class="btn" id="xp-play"><svg viewBox="0 0 16 16" aria-hidden="true"><path id="xp-play-icon" d="M4 2.5v11l9-5.5z" fill="currentColor"/></svg><span>Play</span></button>
+                <button type="button" class="btn" id="xp-blink">Go to the blink</button>
+                <button type="button" class="btn primary" id="xp-dec">Go to the decision</button>
+              </div>
+              <div class="xp-count" aria-live="polite">
+                <div><span>Uniform memory</span><b id="xp-cu">0 / 7 blink frames</b></div>
+                <div><span>WholeBodyMem</span><b id="xp-cw">0 / 7 blink frames</b></div>
+              </div>
+            </div>
+          </div>
+          <div class="timeline" aria-hidden="true">
+            <div class="evtl-area" id="xp-evarea"></div>
+            <div class="tl-track" id="xp-track">
+              <div class="tl-blink" id="xp-band"></div>
+              <div class="tl-lane u" id="xp-lane-u"></div>
+              <div class="tl-lane w" id="xp-lane-w"></div>
+              <div class="tl-future" id="xp-future"></div>
+              <div class="tl-dec" id="xp-decline"></div>
+              <div class="tl-cursor" id="xp-cursor"></div>
+            </div>
+            <div class="tl-labels"><span>0 s</span><span id="xp-end">15.5 s</span></div>
+          </div>
+          <label class="xp-label" for="xp-t">Time in the episode</label>
+          <input type="range" id="xp-t" min="0" max="776" step="1" value="370">
+          <div class="tl-key"><span><i class="k-blink"></i>blink</span><span><i class="k-u"></i>uniform picks (top lane)</span><span><i class="k-w"></i>WholeBodyMem picks (bottom lane)</span><span><i class="k-dec"></i>decision</span></div>
+          <div class="xp-rows">
+            <div class="xp-row"><p class="xp-head"><b>Uniform memory</b> · 7 evenly spaced frames in [0, t]</p><div class="slots" id="xp-slots-u"></div></div>
+            <div class="xp-row"><p class="xp-head"><b>WholeBodyMem</b> · event frames first, then even coverage</p><div class="slots" id="xp-slots-w"></div></div>
+          </div>
+        </div>
+        <p class="caption"><strong>Figure 3.</strong> Which frames each memory keeps, with the same budget of seven frames. Uniform memory spaces them evenly in time and easily misses a short cue such as the 0.2&nbsp;s blink; WholeBodyMem first keeps the frames where an object appears or disappears, then fills the rest evenly, so the blink is still in memory at the decision. In this demonstration the blink is detected from the pad's colour; WholeBodyMem detects it for the decision.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Benchmark -->
+  <section id="benchmark" class="soft">
+    <div class="container">
+      <h2>Memory-Dependent Loco-Manipulation Benchmark</h2>
+      <p class="section-intro">Six simulated humanoid loco-manipulation tasks in which the correct action depends on a cue that has already disappeared and is not named in the instruction. They cover three memory types: counting, permanence and reference.</p>
+      <p class="hint">Scripted expert demonstrations at level L0, played at 2× (click to pause). Task details are at the <a href="#task-details">end of the page</a>.</p>
+      <div class="video-grid">
+        <div class="video-item"><video data-auto src="static/video/sim_flashpad.mp4" poster="static/img/sim/flashpad_poster.jpg" muted loop playsinline preload="none"></video>
+          <p><span class="tag tag-c">Counting</span><b>FlashPad.</b> Count the lamp's flashes, then place the soup can on the pad with that number.</p></div>
+        <div class="video-item"><video data-auto src="static/video/sim_hidemug.mp4" poster="static/img/sim/hidemug_poster.jpg" muted loop playsinline preload="none"></video>
+          <p><span class="tag tag-p">Permanence</span><b>HideMug.</b> Watch where the mug hides, then place the snack box in front of that screen.</p></div>
+        <div class="video-item"><video data-auto src="static/video/sim_shellgame.mp4" poster="static/img/sim/shellgame_poster.jpg" muted loop playsinline preload="none"></video>
+          <p><span class="tag tag-p">Permanence</span><b>ShellGame.</b> Follow the cup that hides the ball, then place the chips can at its final slot.</p></div>
+        <div class="video-item"><video data-auto src="static/video/sim_litlamp.mp4" poster="static/img/sim/litlamp_poster.jpg" muted loop playsinline preload="none"></video>
+          <p><span class="tag tag-r">Reference</span><b>LitLamp.</b> Watch which lamp lights up, then place the sugar box on the pad of that colour.</p></div>
+        <div class="video-item"><video data-auto src="static/video/sim_blinkpad.mp4" poster="static/img/sim/blinkpad_poster.jpg" muted loop playsinline preload="none"></video>
+          <p><span class="tag tag-r">Reference</span><b>BlinkPad.</b> Hold the chips can, watch which pad blinks for 0.2&nbsp;s, then place the can on it.</p></div>
+        <div class="video-item"><video data-auto src="static/video/sim_touchpad.mp4" poster="static/img/sim/touchpad_poster.jpg" muted loop playsinline preload="none"></video>
+          <p><span class="tag tag-r">Reference</span><b>TouchPad.</b> One pad blinks once; after turning away, touch the pad that blinked with the right hand.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Qualitative results in simulation -->
+  <section id="simulation">
+    <div class="container">
+      <h2>Qualitative Results in Simulation</h2>
+      <p class="section-intro">Closed-loop rollouts from the robot's head camera, recorded by the SIMPLE evaluation client at three randomization levels: L0 (visual and distractor), L1 (plus lighting) and L2 (plus spatial perturbation).</p>
+
+      <h3 class="sub-title">Memory-Dependent Tasks: Same Scene, Three Policies</h3>
+      <video src="static/video/compare_touchpad_blinkpad.mp4" poster="static/img/compare_touchpad_blinkpad.jpg" autoplay muted loop playsinline controls preload="metadata" aria-label="TouchPad and BlinkPad: the same test scene for WholeBodyMem, Uniform memory and Ψ0 at randomization levels L0, L1 and L2, with each policy's outcome" style="display:block;width:100%;aspect-ratio:1612/812;background:#fff;border-radius:8px;margin:0 0 14px"></video>
+      <video src="static/video/compare_flashpad_litlamp.mp4" poster="static/img/compare_flashpad_litlamp.jpg" autoplay muted loop playsinline controls preload="metadata" aria-label="FlashPad and LitLamp: the same test scene for WholeBodyMem, Uniform memory and Ψ0 at randomization levels L0, L1 and L2, with each policy's outcome" style="display:block;width:100%;aspect-ratio:1612/812;background:#fff;border-radius:8px;margin:0 0 14px"></video>
+      <video src="static/video/compare_hidemug_shellgame.mp4" poster="static/img/compare_hidemug_shellgame.jpg" autoplay muted loop playsinline controls preload="metadata" aria-label="HideMug and ShellGame: the same test scene for WholeBodyMem, Uniform memory and Ψ0 at randomization levels L0, L1 and L2, with each policy's outcome" style="display:block;width:100%;aspect-ratio:1612/812;background:#fff;border-radius:8px;margin:0 0 14px"></video>
+      <p class="caption">Each row runs the same held-out test scene with WholeBodyMem, Uniform memory and Ψ<sub>0</sub>, at L0, then L1, then L2.</p>
+
+      <h3 class="sub-title">Memory-Dependent Tasks: WholeBodyMem Rollouts</h3>
+      <div class="level-bar">
+        <p class="hint">Videos play at 2×; drag the divider, click a video to pause it.</p>
+        <div class="bar-ctrls">
+          <div class="seg" id="memory-level" role="group" aria-label="Randomization level">
+            <button type="button" aria-pressed="true">L0</button>
+            <button type="button" aria-pressed="false">L1</button>
+            <button type="button" aria-pressed="false">L2</button>
+          </div>
+        </div>
+      </div>
+      <div class="video-grid" id="memory-videos"></div>
+
+      <h3 class="sub-title">Standard SIMPLE Tasks: WholeBodyMem Rollouts</h3>
+      <div class="level-bar">
+        <p class="hint">Videos play at 2×; drag the divider, click a video to pause it.</p>
+        <div class="bar-ctrls">
+          <div class="seg" id="simple-level" role="group" aria-label="Randomization level">
+            <button type="button" aria-pressed="true">L0</button>
+            <button type="button" aria-pressed="false">L1</button>
+            <button type="button" aria-pressed="false">L2</button>
+          </div>
+        </div>
+      </div>
+      <div class="video-grid" id="simple-videos"></div>
+    </div>
+  </section>
+
+  <!-- Real world -->
+  <section id="real" class="soft">
+    <div class="container">
+      <h2>Real-World Experiments</h2>
+      <p class="section-intro">The deployed policy runs on one RTX 5090; SAM3 tracks one frame per executed action chunk (about 1.25&nbsp;Hz) and SONIC executes the predicted motion at 50&nbsp;Hz.</p>
+
+      <div class="category" style="margin-top:2.4rem">
+        <h3>Autonomous Deployment</h3>
+        <p class="cat-intro">WholeBodyMem controls the whole body; nobody touches the robot after the cue. Side view, real time, faces blurred.</p>
+        <div class="level-bar">
+          <p class="hint">Videos play at 2×; click one to pause it.</p>
+        </div>
+        <div class="video-grid" id="deploy-grid">
+          <div class="video-item"><video data-auto data-file="real_trashbag" src="static/video/real_trashbag.mp4" poster="static/img/real/trashbag_poster.jpg" muted loop playsinline preload="none"></video>
+            <p><span class="tag tag-auto">Where</span><b>Trash bag.</b> Put the cup on the frame where the bag rested.</p></div>
+          <div class="video-item"><video data-auto data-file="real_rememberchip" src="static/video/real_rememberchip.mp4" poster="static/img/real/rememberchip_poster.jpg" muted loop playsinline preload="none"></video>
+            <p><span class="tag tag-auto">What</span><b>Remember-chip.</b> Put the can the person singled out into the cart, then push the cart.</p></div>
+          <div class="video-item"><video data-auto data-file="real_cafe_first" src="static/video/real_cafe_first.mp4" poster="static/img/real/cafe_poster.jpg" muted loop playsinline preload="none"></video>
+            <p><span class="tag tag-auto">When</span><b>Café: first come, first served.</b> Serve the cola to the seat that was served first.</p></div>
+          <div class="video-item"><video data-auto data-file="real_cafe_which" src="static/video/real_cafe_which.mp4" poster="static/img/real/cafe_which_poster.jpg" muted loop playsinline preload="none"></video>
+            <p><span class="tag tag-auto">What + where</span><b>Café: which seat has the cola.</b> A cola and a sprite rest on different seats; serve the cola to the cola's seat.</p></div>
+          <div class="video-item"><video data-auto data-file="real_cafe_stopfirst" src="static/video/real_cafe_stopfirst.mp4" poster="static/img/real/cafe_stopfirst_poster.jpg" muted loop playsinline preload="none"></video>
+            <p><span class="tag tag-auto">What + where + when</span><b>Café: where did the cola stop first.</b> Serve the cola to the seat of the cola's first stop.</p></div>
+          <div class="video-item"><video data-auto data-file="real_chipcart" src="static/video/real_chipcart.mp4" poster="static/img/real/chipcart_poster.jpg" muted loop playsinline preload="none"></video>
+            <p><span class="tag tag-auto">Progress</span><b>Chip-cart.</b> Put the three cans into the cart one by one, then push the cart.</p></div>
+        </div>
+      </div>
+
+      <div class="category">
+        <h3>Teleoperated Demonstrations</h3>
+        <p class="cat-intro">Training data is collected by whole-body teleoperation: the operator wears a PICO 4 Ultra headset, holds two controllers and wears ankle trackers; SONIC turns the tracked poses into motion for all 29 joints at 50&nbsp;Hz. Both policies are fine-tuned on the same teleoperated demonstrations of each task.</p>
+        <div class="level-bar">
+          <p class="hint">Top: side view. Bottom: the robot's head camera, the policy's only view, with SAM3 masks for text prompts of the task objects (named top left) left of the divider. Drag the divider; click a video to pause it.</p>
+        </div>
+        <div class="video-grid" id="teleop-grid">
+          <div class="video-item dual"><div class="media"><video data-auto src="static/video/wipe_teleop_trashbag.mp4" poster="static/img/posters/teleop_trashbag.jpg" muted loop playsinline preload="none" aria-label="Side view"></video><span class="view-pill">Side view</span></div>
+            <video data-wipe data-file="ego_trashbag_ep2" data-right="Head camera" src="static/video/wipe_ego_trashbag_ep2.mp4" poster="static/img/posters/ego_trashbag_ep2.jpg" muted loop playsinline preload="none"></video>
+            <p><span class="tag">Easy · where</span><b>Trash bag.</b> The bag rests on one of three frames; the robot fetches the cup and places it there.</p></div>
+          <div class="video-item dual"><div class="media"><video data-auto src="static/video/wipe_teleop_rememberchip.mp4" poster="static/img/posters/teleop_rememberchip.jpg" muted loop playsinline preload="none" aria-label="Side view"></video><span class="view-pill">Side view</span></div>
+            <video data-wipe data-file="ego_rchip_ep1" data-right="Head camera" src="static/video/wipe_ego_rchip_ep1.mp4" poster="static/img/posters/ego_rchip_ep1.jpg" muted loop playsinline preload="none"></video>
+            <p><span class="tag">Easy · what</span><b>Remember-chip.</b> A person singles out one of three chip cans; the robot puts that can into the cart and pushes it.</p></div>
+          <div class="video-item dual"><div class="media"><video data-auto src="static/video/wipe_teleop_cafe_first.mp4" poster="static/img/posters/teleop_cafe_first.jpg" muted loop playsinline preload="none" aria-label="Side view"></video><span class="view-pill">Side view</span></div>
+            <video data-wipe data-file="ego_cafeA_ep1" data-right="Head camera" src="static/video/wipe_ego_cafeA_ep1.mp4" poster="static/img/posters/ego_cafeA_ep1.jpg" muted loop playsinline preload="none"></video>
+            <p><span class="tag">Easy · when</span><b>Café: first come, first served.</b> A cola visits every seat; serve the seat visited first.</p></div>
+          <div class="video-item dual"><div class="media"><video data-auto src="static/video/wipe_teleop_cafe_which.mp4" poster="static/img/posters/teleop_cafe_which.jpg" muted loop playsinline preload="none" aria-label="Side view"></video><span class="view-pill">Side view</span></div>
+            <video data-wipe data-file="ego_cafeB_ep1" data-right="Head camera" src="static/video/wipe_ego_cafeB_ep1.mp4" poster="static/img/posters/ego_cafeB_ep1.jpg" muted loop playsinline preload="none"></video>
+            <p><span class="tag">Middle · what + where</span><b>Café: which seat has the cola.</b> A cola and a sprite rest on different seats; serve the cola's seat.</p></div>
+          <div class="video-item dual"><div class="media"><video data-auto src="static/video/wipe_teleop_cafe_stopfirst.mp4" poster="static/img/posters/teleop_cafe_stopfirst.jpg" muted loop playsinline preload="none" aria-label="Side view"></video><span class="view-pill">Side view</span></div>
+            <video data-wipe data-file="ego_cafeC_raw_ep1" data-right="Head camera" src="static/video/wipe_ego_cafeC_raw_ep1.mp4" poster="static/img/posters/ego_cafeC_raw_ep1.jpg" muted loop playsinline preload="none"></video>
+            <p><span class="tag">Hard · what + where + when</span><b>Café: where did the cola stop first.</b> Serve the seat of the cola's first stop.</p></div>
+          <div class="video-item dual"><div class="media"><video data-auto data-label="4" src="static/video/wipe_teleop_chipcart_2x.mp4" poster="static/img/posters/teleop_chipcart_2x.jpg" muted loop playsinline preload="none" aria-label="Side view"></video><span class="view-pill">Side view</span></div>
+            <video data-wipe data-file="ego_chipcart_ep0" data-speed="4" data-right="Head camera" src="static/video/wipe_ego_chipcart_ep0.mp4" poster="static/img/posters/ego_chipcart_ep0.jpg" muted loop playsinline preload="none"></video>
+            <p><span class="tag">Easy · progress</span><b>Chip-cart.</b> Put three cans into the cart one by one, then push it.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quantitative results -->
+  <section id="results">
+    <div class="container">
+      <h2>Quantitative Results</h2>
+
+      <div class="result-block">
+        <h3 class="sub-title">Memory-Decision Accuracy</h3>
+        <div class="legend" id="mem-legend"></div>
+        <div class="chart-wrap"><svg class="chart" id="mem-chart" role="img" aria-label="Memory-decision accuracy per task and method"></svg></div>
+        <p class="caption"><strong>Figure 4.</strong> Memory-decision accuracy, independent of manipulation. Dashed line: chance.</p>
+      </div>
+
+      <div class="result-block">
+        <h3 class="sub-title">Success on the Memory-Dependent Tasks</h3>
+        <div class="task-table-wrapper"><table class="task-table res" id="mem-table"></table></div>
+        <p class="caption"><strong>Table 1.</strong> Successes at L0 / L1 / L2 (30 episodes each); Avg.: success rate over all levels.</p>
+      </div>
+
+      <div class="result-block">
+        <h3 class="sub-title">Success on the 14 SIMPLE Tasks</h3>
+        <div class="legend" id="simple-legend"></div>
+        <div class="chart-wrap"><svg class="chart" id="simple-chart" role="img" aria-label="Total success on the 14 SIMPLE tasks per method"></svg></div>
+        <div class="table-tools" style="margin-top:1.2rem"><label for="lv-toggle"><input type="checkbox" id="lv-toggle"> Show L0 / L1 / L2</label></div>
+        <div class="task-table-wrapper"><table class="task-table res" id="simple-table"></table></div>
+        <p class="caption"><strong>Table 2.</strong> Successes out of 30 per task (10 per level). Bold: best per task; underlined: second best. All columns are our evaluation with the same client; Ψ<sub>0</sub>: our fine-tuned checkpoint.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Task details -->
+  <section id="task-details">
+    <div class="container">
+      <h2>Benchmark Task Details</h2>
+      <p class="section-intro">The six simulated memory-dependent tasks and the six real-world tasks.</p>
+      <div class="task-table-wrapper">
+        <table class="task-table">
+          <thead><tr><th>Task Name</th><th>Memory Type</th><th>Avg. #Steps</th><th>Memory-Dep. Steps</th><th>Cue</th><th>Brief Description</th></tr></thead>
+          <tbody>
+            <tr class="suite-row"><td colspan="6">Task Suite: Counting (Temporal)</td></tr>
+            <tr><td>FlashPad</td><td class="memory-type">T</td><td class="steps">1153</td><td class="steps">37.5%</td><td>lamp flashes, 3.5 s</td><td>Watch the lamp flash one, two or three times, then pick up the soup can and place it on the pad with that number, counting from the left.</td></tr>
+            <tr class="suite-row"><td colspan="6">Task Suite: Permanence (Spatial)</td></tr>
+            <tr><td>HideMug</td><td class="memory-type">S</td><td class="steps">1297</td><td class="steps">51.0%</td><td>mug hides, 2.2 s</td><td>Watch where the mug hides behind a screen, then place the snack box on the pad in front of that screen.</td></tr>
+            <tr><td>ShellGame</td><td class="memory-type">S</td><td class="steps">1296</td><td class="steps">33.7%</td><td>cups swapped, 3.6 s</td><td>Watch which of three cups hides the ball as they are swapped, then place the chips can on the pad of that cup's final slot.</td></tr>
+            <tr class="suite-row"><td colspan="6">Task Suite: Reference (Object)</td></tr>
+            <tr><td>LitLamp</td><td class="memory-type">O</td><td class="steps">1091</td><td class="steps">48.8%</td><td>lamp lights, 0.5 s</td><td>Watch which lamp lights up, then place the sugar box on the pad with that lamp's colour.</td></tr>
+            <tr><td>BlinkPad</td><td class="memory-type">O</td><td class="steps">892</td><td class="steps">51.1%</td><td>pad blinks, 0.2 s</td><td>Hold the chips can and watch which pad blinks, then place the can on that pad.</td></tr>
+            <tr><td>TouchPad</td><td class="memory-type">O</td><td class="steps">1199</td><td class="steps">22.3%</td><td>pad blinks, 0.2 s</td><td>Watch the three pads; one blinks once. Turn away, then touch the pad that blinked with the right hand.</td></tr>
+            <tr class="suite-row"><td colspan="6">Task Suite: Real World (Unitree G1)</td></tr>
+            <tr><td>Trash bag</td><td class="memory-type">where</td><td class="steps">–</td><td class="steps">–</td><td>bag on a frame</td><td>A purple bag rests on one of three frames and is taken away; the robot picks the blue cup, turns back and places it on that frame. (Easy)</td></tr>
+            <tr><td>Remember-chip</td><td class="memory-type">what</td><td class="steps">–</td><td class="steps">–</td><td>a can is singled out</td><td>A person singles out one of three chip cans; the robot puts that can into the cart and pushes the cart. (Easy)</td></tr>
+            <tr><td>Café: first come, first served</td><td class="memory-type">when</td><td class="steps">–</td><td class="steps">–</td><td>cola on each seat</td><td>A cola rests on each of three seats for 0.7 s in random order; the robot serves its cola to the seat served first. (Easy)</td></tr>
+            <tr><td>Café: which seat has the cola</td><td class="memory-type">what + where</td><td class="steps">–</td><td class="steps">–</td><td>cola and sprite</td><td>A cola and a sprite each rest on a different seat; the robot serves the seat where the cola rested. (Middle)</td></tr>
+            <tr><td>Café: where did the cola stop first</td><td class="memory-type">what + where + when</td><td class="steps">–</td><td class="steps">–</td><td>cola, sprite, cola</td><td>The cola rests on two seats and the sprite on one, in random order; the robot serves the seat of the cola's first stop. (Hard)</td></tr>
+            <tr><td>Chip-cart</td><td class="memory-type">progress</td><td class="steps">–</td><td class="steps">–</td><td>none</td><td>The robot puts three cans into the cart one by one, then pushes the cart; the remaining cans are behind it once it turns.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <img src="static/img/dataset_stats_v2.png" alt="Dataset statistics compared with HumanoidMimicGen, HumanoidArena and SIMPLE: average trajectory length, tasks by memory type, memory-dependent steps." class="teaser-img" loading="lazy">
+      <p class="caption"><strong>Figure 5.</strong> Compared with humanoid imitation benchmarks on the same robot and control rate (Unitree G1, 50&nbsp;Hz), our episodes are the longest on average (1,155 control steps against 818, 611 and 322 for HumanoidMimicGen, HumanoidArena and SIMPLE), and 40.7% of their control steps depend on a cue that has already ended.</p>
+    </div>
+  </section>
+
+  <!-- Citation -->
+  <section id="citation">
+    <div class="container">
+      <h2>Citation</h2>
+      <div class="bib">
+        <pre><code id="bib-text">@article{wholebodymem2026,
+  title   = {Memory before Goal: Role of Pre-History Memory for
+             Humanoid Loco-Manipulation},
+  author  = {Anonymous},
+  journal = {Under review},
+  year    = {2026}
+}</code></pre>
+        <button type="button" class="btn" id="bib-copy">Copy</button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <p>Anonymous project page for peer review &nbsp;·&nbsp; Faces in the real-robot videos are blurred &nbsp;·&nbsp; Website adapted from the <a href="https://github.com/Diffusion-CoT/reflection2perfection">Academic Project Page Template</a></p>
+</footer>
+
+<script src="static/js/data.js"></script>
+<script src="static/js/generated.js"></script>
+<script src="static/js/assets.js"></script>
+<script src="static/js/main.js"></script>
+
+</body></html>
