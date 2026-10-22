@@ -394,25 +394,13 @@
     const linspace = (t, n) => n === 1 ? [0] : Array.from({ length: n }, (_, i) => Math.round((i * t) / (n - 1)));
     const uniformMem = (t) => [...new Set(linspace(t, Math.min(M, t + 1)))].sort((a, b) => a - b);
     function objectGuided(t) {
-      const B = Math.min(M, t + 1), Be = Math.min(B - 1, Math.floor(0.75 * B));
+      const out = new Set(linspace(t, Math.min(3, t + 1))), evSet = new Set();
       const ev = EVENTS.filter((e) => t >= e.known && e.frame < t).sort((a, b) => b.rank - a.rank);
-      if (!ev.length) return { frames: uniformMem(t), events: new Set() };
-      const S = [];
       for (const e of ev) {
-        if (S.length >= Be) break;
-        if (!S.some((f) => Math.abs(f - e.frame) <= GAP)) S.push(e.frame);
+        if (evSet.size >= M - 3) break;
+        if (![...out].some((f) => isBlink(f) && Math.abs(f - e.frame) <= GAP)) { out.add(e.frame); evSet.add(e.frame); }
       }
-      const evSet = new Set(S), out = new Set(S);
-      linspace(t, Math.max(1, B - S.length)).forEach((f) => out.add(f));
-      out.add(t);
-      while (out.size < B) {
-        let best = 0, bd = -1;
-        for (let f = 0; f <= t; f++) { let d = Infinity; out.forEach((g) => { d = Math.min(d, Math.abs(f - g)); }); if (d > bd) { bd = d; best = f; } }
-        out.add(best);
-      }
-      const frames = [...out].sort((a, b) => a - b);
-      while (frames.length > B) { const i = frames.findIndex((f) => !evSet.has(f) && f !== t); frames.splice(i, 1); }
-      return { frames, events: evSet };
+      return { frames: [...out].sort((a, b) => a - b), events: evSet };
     }
 
     const SF = D.sprite_frames, rows = Math.ceil(SF.length / D.cols);

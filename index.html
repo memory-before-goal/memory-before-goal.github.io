@@ -160,10 +160,10 @@
           <div class="tl-key"><span><i class="k-blink"></i>blink</span><span><i class="k-u"></i>uniform picks (top lane)</span><span><i class="k-w"></i>WholeBodyMem picks (bottom lane)</span><span><i class="k-dec"></i>decision</span></div>
           <div class="xp-rows">
             <div class="xp-row"><p class="xp-head"><b>Uniform memory</b> · 7 evenly spaced frames in [0, t]</p><div class="slots" id="xp-slots-u"></div></div>
-            <div class="xp-row"><p class="xp-head"><b>WholeBodyMem</b> · event frames first, then even coverage</p><div class="slots" id="xp-slots-w"></div></div>
+            <div class="xp-row"><p class="xp-head"><b>WholeBodyMem</b> · first, middle and current frames + up to four event frames (3 to 7 frames)</p><div class="slots" id="xp-slots-w"></div></div>
           </div>
         </div>
-        <p class="caption"><strong>Figure 3.</strong> Which frames each memory keeps, with the same budget of seven frames. Uniform memory spaces them evenly in time and easily misses a short cue such as the 0.2&nbsp;s blink; WholeBodyMem first keeps the frames where an object appears or disappears, then fills the rest evenly, so the blink is still in memory at the decision. In this demonstration the blink is detected from the pad's colour; WholeBodyMem detects it for the decision.</p>
+        <p class="caption"><strong>Figure 3.</strong> Which frames each memory keeps, with a budget of at most seven frames. Uniform memory always fills all seven, evenly spaced in time, and easily misses a short cue such as the 0.2&nbsp;s blink; WholeBodyMem keeps the first, middle and current frames and adds up to four frames where an object appears or disappears, leaving the other slots empty, so it holds 3 to 7 frames and the blink is still in memory at the decision. In this demonstration the blink is detected from the pad's colour; WholeBodyMem detects it for the decision.</p>
       </div>
     </div>
   </section>
